@@ -7,9 +7,9 @@ import android.os.Looper;
 import android.util.Log;
 
 import androidx.annotation.NonNull;
+import androidx.lifecycle.MutableLiveData;
 
-import com.gerwalex.lib.R;
-import com.gerwalex.lib.main.App;
+import com.gerwalex.monetize.R;
 import com.google.android.gms.ads.AdError;
 import com.google.android.gms.ads.FullScreenContentCallback;
 import com.google.android.gms.ads.LoadAdError;
@@ -20,6 +20,7 @@ import com.google.android.gms.ads.admanager.AdManagerInterstitialAdLoadCallback;
 import java.util.Objects;
 
 public abstract class FragmentInterstatialAd extends AdManagerInterstitialAdLoadCallback {
+    public final MutableLiveData<Boolean> isTestDevice = new MutableLiveData<>();
     private final String adUnitId;
     private final Context context;
     private final Handler handler;
@@ -62,8 +63,8 @@ public abstract class FragmentInterstatialAd extends AdManagerInterstitialAdLoad
 
     private void initializeInterstitialAd(String adUnitId) {
         AdManagerAdRequest adRequest = new AdManagerAdRequest.Builder().build();
-        App.isTestDevice = adRequest.isTestDevice(context);
-        Log.d("gerwalex", "isTestDevice: " + App.isTestDevice);
+        isTestDevice.setValue(adRequest.isTestDevice(context));
+        Log.d("gerwalex", "isTestDevice: " + isTestDevice.getValue());
         AdManagerInterstitialAd.load(context, adUnitId, adRequest, this);
     }
 

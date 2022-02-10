@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="alternativelayoutHint" translatable="false">Alternative Werbung wenn kein AdView geladen werden kann. Ist als attribut
+        \'app:alternativeLayout\' zu setzen. Der Button muss als id \'alternativeViewButton\' erhalten. Dann
+        klappts auch mit der Animation :-)</string>
+    <string name="defaultInfoText">No More Information.</string>
+    <string name="dontshowagain">Don\'t show hint again</string>
+    <string name="cancel">Cancel</string>
+    <string name="ok">@android:string/ok</string>
+    <string name="buyNow">Buy now</string>
+    <string name="infoDialogTitle">Information</string>
+    <string name="purchaseResultCode">Error on Purchase, ResultCode = %1$d</string>
+    <string name="adViewDescription">"Advertisement"</string>
+    <string name="timerViewText" translatable="false">%d hr %d mins</string>
+
+
+</resources>

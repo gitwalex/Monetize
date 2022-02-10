@@ -1,0 +1,14 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <string name="defaultInfoText">Keine weiteren Informationen vorhanden.</string>
+    <string name="dontshowagain">Hinweis nicht noch einmal zeigen</string>
+    <string name="cancel">Abbrechen</string>
+    <string name="ok">@android:string/ok</string>
+    <string name="buyNow">Jetzt kaufen</string>
+    <string name="infoDialogTitle">Information</string>
+    <string name="purchaseResultCode">Fehler bei Kaufabwicklung, ResultCode = %1$d</string>
+    <string name="adViewDescription">"Werbung"</string>
+
+
+</resources>

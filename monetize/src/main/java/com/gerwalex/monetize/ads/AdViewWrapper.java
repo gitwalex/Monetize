@@ -10,13 +10,13 @@ import android.widget.FrameLayout;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.lifecycle.MutableLiveData;
 import androidx.lifecycle.Observer;
 import androidx.transition.Fade;
 import androidx.transition.Transition;
 import androidx.transition.TransitionManager;
 
-import com.gerwalex.lib.R;
-import com.gerwalex.lib.main.App;
+import com.gerwalex.monetize.R;
 import com.google.android.gms.ads.AdListener;
 import com.google.android.gms.ads.AdRequest;
 import com.google.android.gms.ads.AdSize;
@@ -25,10 +25,12 @@ import com.google.android.gms.ads.LoadAdError;
 
 public class AdViewWrapper extends FrameLayout {
 
+    public final MutableLiveData<Boolean> noAds = new MutableLiveData<>();
     private final AdRequest adRequest;
     private final String adUnitId;
     private final AdaptiveBannerSize adaptiveBannerSize;
     private final Type bannerType;
+    private final MutableLiveData<Boolean> isTestDevice = new MutableLiveData<>();
     private final AdView mAdView;
     private final Observer<? super Boolean> withAdObserver = new Observer<Boolean>() {
         @Override
@@ -49,11 +51,11 @@ public class AdViewWrapper extends FrameLayout {
     public AdViewWrapper(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
         adRequest = new AdRequest.Builder().build();
-        App.isTestDevice = adRequest.isTestDevice(context);
+        isTestDevice.setValue(adRequest.isTestDevice(context));
         //        if (BuildConfig.DEBUG && !App.isTestDevice) {
         //            throw new UnsupportedOperationException("Device ist kein Testgerät. Debigging nicht möglich");
         //        }
-        Log.d("gerwalex", "App.isTestDevice: " + App.isTestDevice);
+        Log.d("gerwalex", "App.isTestDevice: " + isTestDevice.getValue());
         Resources res = getResources();
         setContentDescription(res.getString(R.string.adViewDescription));
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AdViewWrapper, 0, 0);
@@ -79,7 +81,7 @@ public class AdViewWrapper extends FrameLayout {
                 super.onAdFailedToLoad(error);
                 Log.d("gerwalex",
                         String.format("AdMobUnitId: %1s, AdType: %2s, isTestDevice (%3s)", adUnitId, bannerType.name(),
-                                App.isTestDevice));
+                                isTestDevice.getValue()));
                 Log.d("gerwalex", "Ad loading failed: " + error);
                 removeView(mAdView);
             }
@@ -99,7 +101,7 @@ public class AdViewWrapper extends FrameLayout {
     protected void onAttachedToWindow() {
         super.onAttachedToWindow();
         if (!isInEditMode()) {
-            App.noAds.observeForever(withAdObserver);
+            noAds.observeForever(withAdObserver);
         }
     }
 
@@ -107,7 +109,7 @@ public class AdViewWrapper extends FrameLayout {
     protected void onDetachedFromWindow() {
         super.onDetachedFromWindow();
         if (!isInEditMode()) {
-            App.noAds.removeObserver(withAdObserver);
+            noAds.removeObserver(withAdObserver);
         }
     }
 

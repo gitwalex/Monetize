@@ -1,16 +1,13 @@
 package com.gerwalex.monetize.billing;
 
-import android.database.Cursor;
-
 import androidx.annotation.NonNull;
 import androidx.annotation.WorkerThread;
 import androidx.room.Ignore;
 
 import com.android.billingclient.api.BillingClient;
 import com.android.billingclient.api.Purchase;
-import com.gerwalex.lib.database.ObservableTableRow;
 
-public abstract class Product extends ObservableTableRow {
+public abstract class Product {
     // @formatter:off
     /**
      * Produktid wie in der GooglePlayConsole abgelegt.
@@ -63,18 +60,6 @@ public abstract class Product extends ObservableTableRow {
     public Product(@BillingClient.SkuType String skuType, @NonNull String produktid) {
         this.produktid = produktid;
         this.skuType = skuType;
-    }
-
-    public Product(Cursor c) {
-        super(c);
-        produktid = getAsString("produktId");
-        skuType = getAsString("skuType");
-        purchaseToken = getAsString("skuDetails");
-        acknowledgeTime = getAsLongOrNull("acknowledgeTime");
-        consumeTime = getAsLongOrNull("consumeTime");
-        subscribeTime = getAsLongOrNull("subscribeTime");
-        unSubscribeTime = getAsLongOrNull("unSubscribeTime");
-        endSubscribeTime = getAsLongOrNull("endSubscribeTime");
     }
 
     @WorkerThread

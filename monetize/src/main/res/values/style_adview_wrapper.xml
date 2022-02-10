@@ -1,0 +1,28 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+
+    <declare-styleable name="AdViewWrapper">
+        <!--    Art des Banners. Default ist Banner-->
+        <attr name="bannerType" format="enum">
+            <enum name="Banner" value="0" />
+            <enum name="LargeBanner" value="1" />
+            <enum name="MediumRectangle" value="2" />
+            <enum name="FullSizeBanner" value="3" />
+            <enum name="Leaderboard" value="4" />
+            <enum name="AdaptiveBanner" value="5" />
+        </attr>
+        <!--        AdaptiveBannerSize. Default ist Anchored-->
+        <attr name="adaptiveBannerSize" format="enum">
+            <enum name="Anchored" value="0" />
+            <enum name="Inline" value="1" />
+            <enum name="Interscroller" value="2" />
+        </attr>
+
+        <!--        adUnitID -->
+        <attr name="adUnitId" format="string" />
+    </declare-styleable>
+    <integer name="fadeInOutDuration">1000</integer>
+    <integer name="rotate_duration">10000</integer>
+
+
+</resources>

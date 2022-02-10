@@ -4,13 +4,16 @@ import static com.android.billingclient.api.BillingClient.SkuType.INAPP;
 
 import android.os.Bundle;
 import android.util.Log;
+import android.view.LayoutInflater;
+import android.view.View;
+import android.view.ViewGroup;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.annotation.UiThread;
 import androidx.annotation.WorkerThread;
-import androidx.appcompat.app.AppCompatActivity;
+import androidx.fragment.app.Fragment;
 
 import com.android.billingclient.api.AcknowledgePurchaseParams;
 import com.android.billingclient.api.AcknowledgePurchaseResponseListener;
@@ -26,19 +29,19 @@ import com.android.billingclient.api.PurchasesUpdatedListener;
 import com.android.billingclient.api.SkuDetails;
 import com.android.billingclient.api.SkuDetailsParams;
 import com.android.billingclient.api.SkuDetailsResponseListener;
-import com.gerwalex.lib.main.App;
-import com.gerwalex.lib.main.BasicActivity;
+import com.gerwalex.monetize.databinding.BillingFragmentBinding;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-public abstract class BillingActivity extends BasicActivity
+public abstract class BillingFragment extends Fragment
         implements PurchasesUpdatedListener, BillingClientStateListener, ConsumeResponseListener {
 
     private static final long START_DELAY = 1000L;
     private BillingClient billingClient;
     private Boolean billingClientConnected;
+    private BillingFragmentBinding binding;
     /**
      * Verzögerung für Abruf Produkte und Prüfung, ob Aufbau Connection erfolgreich war.
      */
@@ -73,7 +76,7 @@ public abstract class BillingActivity extends BasicActivity
             if (retryDelay < TimeUnit.MINUTES.toMillis(2)) {
                 Log.d("gerwalex",
                         String.format("ConsumePurchase: BillingClient not ready. Wait for %1$d Millis. ", retryDelay));
-                postOnUiThread(new Runnable() {
+                requireView().postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         consumePurchase(purchaseToken);
@@ -130,7 +133,7 @@ public abstract class BillingActivity extends BasicActivity
      * @param produkt produkt
      */
     @UiThread
-    protected void initiatePurchase(@NonNull Product produkt) {
+    public void initiatePurchase(@NonNull Product produkt) {
         List<String> skuList = new ArrayList<>();
         skuList.add(produkt.produktid);
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
@@ -143,7 +146,7 @@ public abstract class BillingActivity extends BasicActivity
                         BillingFlowParams flowParams =
                                 BillingFlowParams.newBuilder().setSkuDetails(skuDetailsList.get(0)).build();
                         BillingResult launchBillingFlowResult =
-                                billingClient.launchBillingFlow(BillingActivity.this, flowParams);
+                                billingClient.launchBillingFlow(requireActivity(), flowParams);
                         int result = launchBillingFlowResult.getResponseCode();
                         if (result != BillingClient.BillingResponseCode.OK) {
                             onPurchasesError(result);
@@ -187,16 +190,28 @@ public abstract class BillingActivity extends BasicActivity
     }
 
     @Override
-    protected void onCreate(Bundle savedInstanceState) {
+    public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        App.run((() -> {
-            billingClient = BillingClient.newBuilder(this).enablePendingPurchases().setListener(this).build();
-            billingClient.startConnection(this);
-        }));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                billingClient = BillingClient.newBuilder(requireContext()).enablePendingPurchases()
+                        .setListener(BillingFragment.this).build();
+                billingClient.startConnection(BillingFragment.this);
+            }
+        });
+    }
+
+    @Nullable
+    @Override
+    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
+                             @Nullable Bundle savedInstanceState) {
+        binding = BillingFragmentBinding.inflate(inflater);
+        return binding.getRoot();
     }
 
     @Override
-    protected void onDestroy() {
+    public void onDestroy() {
         super.onDestroy();
         billingClient.endConnection();
     }
@@ -254,24 +269,32 @@ public abstract class BillingActivity extends BasicActivity
     @Override
     public void onPurchasesUpdated(@NonNull BillingResult billingResult, @Nullable List<Purchase> list) {
         if (list != null && list.size() > 0) {
-            App.run((() -> {
-                for (Purchase purchase : list) {
-                    int result = billingResult.getResponseCode();
-                    if (result == BillingClient.BillingResponseCode.OK) {
-                        // Ok: Kauf erfolgreich durchgeführt
-                        handlePurchase(purchase);
-                    } else {
-                        onPurchasesError(result);
+            new Thread(new Runnable() {
+                @Override
+                public void run() {
+                    for (Purchase purchase : list) {
+                        int result = billingResult.getResponseCode();
+                        if (result == BillingClient.BillingResponseCode.OK) {
+                            // Ok: Kauf erfolgreich durchgeführt
+                            handlePurchase(purchase);
+                        } else {
+                            onPurchasesError(result);
+                        }
                     }
                 }
-            }));
+            });
         }
     }
 
     @Override
-    protected void onResume() {
+    public void onResume() {
         super.onResume();
-        App.run((this::queryPurchases));
+        new Thread(new Runnable() {
+            @Override
+            public void run() {
+                queryPurchases();
+            }
+        });
     }
 
     /**
@@ -311,7 +334,7 @@ public abstract class BillingActivity extends BasicActivity
             }
             Log.d("gerwalex",
                     String.format("QueryPurchase: BillingClient not ready. Wait for %1$d Millis. ", retryDelay));
-            postOnUiThread(new Runnable() {
+            requireView().postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     queryPurchases();

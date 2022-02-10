@@ -13,6 +13,10 @@ android {
         testInstrumentationRunner "androidx.test.runner.AndroidJUnitRunner"
         consumerProguardFiles "consumer-rules.pro"
     }
+    buildFeatures {
+        viewBinding true
+        dataBinding true
+    }
 
     buildTypes {
         release {
@@ -27,7 +31,6 @@ android {
 }
 
 dependencies {
-    implementation 'com.github.gitwalex:Gerwalex:0.0.2'
     implementation 'androidx.appcompat:appcompat:1.4.1'
     implementation 'com.google.android.material:material:1.5.0'
     implementation 'com.android.billingclient:billing:4.0.0'
