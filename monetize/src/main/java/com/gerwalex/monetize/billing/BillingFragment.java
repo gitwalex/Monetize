@@ -3,10 +3,9 @@ package com.gerwalex.monetize.billing;
 import static com.android.billingclient.api.BillingClient.SkuType.INAPP;
 
 import android.os.Bundle;
+import android.os.Handler;
+import android.os.Looper;
 import android.util.Log;
-import android.view.LayoutInflater;
-import android.view.View;
-import android.view.ViewGroup;
 
 import androidx.annotation.CallSuper;
 import androidx.annotation.NonNull;
@@ -39,6 +38,7 @@ public abstract class BillingFragment extends Fragment
         implements PurchasesUpdatedListener, BillingClientStateListener, ConsumeResponseListener {
 
     private static final long START_DELAY = 1000L;
+    private static final Handler handler = new Handler(Looper.getMainLooper());
     private BillingClient billingClient;
     private Boolean billingClientConnected;
     private BillingFragmentBinding binding;
@@ -76,7 +76,7 @@ public abstract class BillingFragment extends Fragment
             if (retryDelay < TimeUnit.MINUTES.toMillis(2)) {
                 Log.d("gerwalex",
                         String.format("ConsumePurchase: BillingClient not ready. Wait for %1$d Millis. ", retryDelay));
-                requireView().postDelayed(new Runnable() {
+                handler.postDelayed(new Runnable() {
                     @Override
                     public void run() {
                         consumePurchase(purchaseToken);
@@ -133,11 +133,11 @@ public abstract class BillingFragment extends Fragment
      * @param produkt produkt
      */
     @UiThread
-    public void initiatePurchase(@NonNull Product produkt) {
+    public void initiatePurchase(@NonNull ProductInfo produkt) {
         List<String> skuList = new ArrayList<>();
-        skuList.add(produkt.produktid);
+        skuList.add(produkt.getProduktId());
         SkuDetailsParams.Builder params = SkuDetailsParams.newBuilder();
-        params.setSkusList(skuList).setType(produkt.skuType);
+        params.setSkusList(skuList).setType(produkt.getSkuType());
         billingClient.querySkuDetailsAsync(params.build(), new SkuDetailsResponseListener() {
             @Override
             public void onSkuDetailsResponse(@NonNull BillingResult billingResult, List<SkuDetails> skuDetailsList) {
@@ -154,8 +154,8 @@ public abstract class BillingFragment extends Fragment
                     } else {
                         //try to add item/product id "purchase" inside managed product in google play console
                         Log.d("gerwalex",
-                                String.format("Purchase Item %1$s not Found, skuType %2$s " + produkt.produktid,
-                                        produkt.skuType));
+                                String.format("Purchase Item %1$s not Found, skuType %2$s " + produkt.getProduktId(),
+                                        produkt.getSkuType()));
                     }
                 } else {
                     Log.d("gerwalex", " Error " + billingResult.getDebugMessage());
@@ -200,14 +200,6 @@ public abstract class BillingFragment extends Fragment
                 billingClient.startConnection(BillingFragment.this);
             }
         });
-    }
-
-    @Nullable
-    @Override
-    public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container,
-                             @Nullable Bundle savedInstanceState) {
-        binding = BillingFragmentBinding.inflate(inflater);
-        return binding.getRoot();
     }
 
     @Override
@@ -334,7 +326,7 @@ public abstract class BillingFragment extends Fragment
             }
             Log.d("gerwalex",
                     String.format("QueryPurchase: BillingClient not ready. Wait for %1$d Millis. ", retryDelay));
-            requireView().postDelayed(new Runnable() {
+            handler.postDelayed(new Runnable() {
                 @Override
                 public void run() {
                     queryPurchases();
@@ -352,4 +344,11 @@ public abstract class BillingFragment extends Fragment
      */
 
     protected abstract boolean verifyValidSignature(String originalJson, String signature);
+
+    public interface ProductInfo {
+
+        String getProduktId();
+
+        String getSkuType();
+    }
 }
