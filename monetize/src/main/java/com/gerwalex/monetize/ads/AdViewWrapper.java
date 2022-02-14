@@ -156,27 +156,57 @@ public class AdViewWrapper extends FrameLayout {
             public AdSize getAdSize() {
                 return AdSize.BANNER;
             }
+
+            @Override
+            public int[] getSizeInDP() {
+                return new int[]{320, 50};
+            }
         }, LargeBanner {
+            @Override
+            public int[] getSizeInDP() {
+                return new int[]{320, 100};
+            }
+
             @Override
             public AdSize getAdSize() {
                 return AdSize.LARGE_BANNER;
             }
         }, MediumRectangle {
             @Override
+            public int[] getSizeInDP() {
+                return new int[]{300, 250};
+            }
+
+            @Override
             public AdSize getAdSize() {
                 return AdSize.MEDIUM_RECTANGLE;
             }
         }, FullSizeBanner {
+            @Override
+            public int[] getSizeInDP() {
+                return new int[]{468, 60};
+            }
+
             @Override
             public AdSize getAdSize() {
                 return AdSize.FULL_BANNER;
             }
         }, Leaderboard {
             @Override
+            public int[] getSizeInDP() {
+                return new int[]{728, 90};
+            }
+
+            @Override
             public AdSize getAdSize() {
                 return AdSize.LEADERBOARD;
             }
         }, AdaptiveBanner {
+            @Override
+            public int[] getSizeInDP() {
+                return new int[]{320, 50};
+            }
+
             @Override
             public AdSize getAdSize() {
                 throw new NullPointerException("AdSize wird in onSizeChanged ermittelt");
@@ -184,5 +214,7 @@ public class AdViewWrapper extends FrameLayout {
         };
 
         public abstract AdSize getAdSize();
+
+        public abstract int[] getSizeInDP();
     }
 }
