@@ -26,7 +26,9 @@ import com.google.android.gms.ads.LoadAdError;
 public class AdViewWrapper extends FrameLayout {
 
     public final MutableLiveData<Boolean> noAds = new MutableLiveData<>();
+    private final AdRequest adRequest;
     private final String adUnitId;
+    private final AdaptiveBannerSize adaptiveBannerSize;
     private final Type bannerType;
     private final MutableLiveData<Boolean> isTestDevice = new MutableLiveData<>();
     private final AdView mAdView;
@@ -36,6 +38,7 @@ public class AdViewWrapper extends FrameLayout {
             fadeInOut(noAds);
         }
     };
+    private boolean isAdSizeSet;
 
     public AdViewWrapper(@NonNull Context context) {
         this(context, null);
@@ -47,7 +50,7 @@ public class AdViewWrapper extends FrameLayout {
 
     public AdViewWrapper(@NonNull Context context, @Nullable AttributeSet attrs, int defStyleAttr) {
         super(context, attrs, defStyleAttr);
-        AdRequest adRequest = new AdRequest.Builder().build();
+        adRequest = new AdRequest.Builder().build();
         isTestDevice.setValue(adRequest.isTestDevice(context));
         //        if (BuildConfig.DEBUG && !App.isTestDevice) {
         //            throw new UnsupportedOperationException("Device ist kein Testgerät. Debigging nicht möglich");
@@ -56,7 +59,6 @@ public class AdViewWrapper extends FrameLayout {
         Resources res = getResources();
         setContentDescription(res.getString(R.string.adViewDescription));
         TypedArray a = context.getTheme().obtainStyledAttributes(attrs, R.styleable.AdViewWrapper, 0, 0);
-        AdaptiveBannerSize adaptiveBannerSize;
         try {
             int value = a.getInt(R.styleable.AdViewWrapper_bannerType, 0);
             bannerType = Type.values()[value];
@@ -72,28 +74,10 @@ public class AdViewWrapper extends FrameLayout {
         }
         mAdView = new AdView(context);
         mAdView.setAdUnitId(adUnitId);
-        AdSize adSize;
-        if (bannerType == Type.AdaptiveBanner) {
-            int width = getResources().getDisplayMetrics().widthPixels;
-            Log.d("gerwalex", String.format("AdView width %1$d:", width));
-            switch (adaptiveBannerSize) {
-                case Anchored:
-                    adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(getContext(), width);
-                    break;
-                case Inline:
-                    adSize = AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(getContext(), width);
-                    break;
-                case Interscroller:
-                    adSize = AdSize.getCurrentOrientationInterscrollerAdSize(getContext(), width);
-                    break;
-                default:
-                    throw new IllegalArgumentException("AdaptiveBannerSize nicht bekannt");
-            }
-        } else {
-            adSize = bannerType.getAdSize();
+        if (bannerType != Type.AdaptiveBanner) {
+            mAdView.setAdSize(bannerType.getAdSize());
+            mAdView.loadAd(adRequest);
         }
-        mAdView.setAdSize(adSize);
-        mAdView.loadAd(adRequest);
         addView(mAdView);
         mAdView.setAdListener(new AdListener() {
             @Override
@@ -130,6 +114,34 @@ public class AdViewWrapper extends FrameLayout {
         super.onDetachedFromWindow();
         if (!isInEditMode()) {
             noAds.removeObserver(withAdObserver);
+        }
+    }
+
+    @Override
+    protected void onSizeChanged(int w, int h, int oldw, int oldh) {
+        super.onSizeChanged(w, h, oldw, oldh);
+        if (bannerType == Type.AdaptiveBanner && w != 0 && !isAdSizeSet) {
+            AdSize adSize;
+            float density = getResources().getDisplayMetrics().density;
+            Log.d("gerwalex", String.format("AdView measured width %1$d, height %2$d: ", w, h));
+            int size = (int) (w / density);
+            Log.d("gerwalex", String.format("AdView width %1$d:", size));
+            switch (adaptiveBannerSize) {
+                case Anchored:
+                    adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(getContext(), size);
+                    break;
+                case Inline:
+                    adSize = AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(getContext(), size);
+                    break;
+                case Interscroller:
+                    adSize = AdSize.getCurrentOrientationInterscrollerAdSize(getContext(), size);
+                    break;
+                default:
+                    throw new IllegalArgumentException("AdaptiveBannerSize nicht bekannt");
+            }
+            mAdView.setAdSize(adSize);
+            mAdView.loadAd(adRequest);
+            isAdSizeSet = true;
         }
     }
 
