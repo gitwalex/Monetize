@@ -205,7 +205,9 @@ public abstract class BillingFragment extends Fragment
     @Override
     public void onDestroy() {
         super.onDestroy();
-        billingClient.endConnection();
+        if (billingClient != null) {
+            billingClient.endConnection();
+        }
     }
 
     @WorkerThread
