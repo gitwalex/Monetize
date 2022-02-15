@@ -76,6 +76,7 @@ public class AdViewWrapper extends FrameLayout {
         mAdView.setAdUnitId(adUnitId);
         if (bannerType != Type.AdaptiveBanner) {
             mAdView.setAdSize(bannerType.getAdSize());
+            isAdSizeSet = true;
             mAdView.loadAd(adRequest);
         }
         addView(mAdView);
@@ -120,21 +121,21 @@ public class AdViewWrapper extends FrameLayout {
     @Override
     protected void onSizeChanged(int w, int h, int oldw, int oldh) {
         super.onSizeChanged(w, h, oldw, oldh);
-        if (bannerType == Type.AdaptiveBanner && w != 0 && !isAdSizeSet) {
+        if (bannerType == Type.AdaptiveBanner && w != 0 && oldw == 0 && !isAdSizeSet) {
             AdSize adSize;
             float density = getResources().getDisplayMetrics().density;
             Log.d("gerwalex", String.format("AdView measured width %1$d, height %2$d: ", w, h));
-            int size = (int) (w / density);
-            Log.d("gerwalex", String.format("AdView width %1$d:", size));
+            int width = (int) (w / density);
+            Log.d("gerwalex", String.format("AdView width %1$d:", width));
             switch (adaptiveBannerSize) {
                 case Anchored:
-                    adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(getContext(), size);
+                    adSize = AdSize.getCurrentOrientationAnchoredAdaptiveBannerAdSize(getContext(), width);
                     break;
                 case Inline:
-                    adSize = AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(getContext(), size);
+                    adSize = AdSize.getCurrentOrientationInlineAdaptiveBannerAdSize(getContext(), width);
                     break;
                 case Interscroller:
-                    adSize = AdSize.getCurrentOrientationInterscrollerAdSize(getContext(), size);
+                    adSize = AdSize.getCurrentOrientationInterscrollerAdSize(getContext(), width);
                     break;
                 default:
                     throw new IllegalArgumentException("AdaptiveBannerSize nicht bekannt");
